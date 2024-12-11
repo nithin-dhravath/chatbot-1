@@ -1,0 +1,53 @@
+﻿import nltk
+from nltk.tokenize import word_tokenize
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Download NLTK resources
+nltk.download('punkt')
+
+# Sample data for chatbot (FAQs and responses)
+faqs = [
+    "What is your name?",
+    "How can I contact customer support?",
+    "What are your working hours?",
+    "Where are you located?",
+    "How do I reset my password?"
+]
+
+responses = [
+    "I am Chatbot, your virtual assistant.",
+    "You can contact customer support at support@example.com.",
+    "Our working hours are from 9 AM to 6 PM, Monday to Friday.",
+    "We are located at 123 Main Street, Springfield.",
+    "To reset your password, click on 'Forgot Password' on the login page."
+]
+
+# Preprocessing: Tokenize and vectorize FAQs
+vectorizer = CountVectorizer().fit_transform(faqs)
+faq_vectors = vectorizer.toarray()
+
+# Chatbot function
+def chatbot_response(user_query):
+    user_vector = CountVectorizer().fit(faqs).transform([user_query]).toarray()
+    similarities = cosine_similarity(user_vector, faq_vectors)
+    
+    # Find the most similar FAQ
+    closest_index = similarities.argmax()
+    similarity_score = similarities[0][closest_index]
+    
+    if similarity_score > 0.5:  # Threshold for relevance
+        return responses[closest_index]
+    else:
+        return "I'm sorry, I didn't understand that. Can you rephrase?"
+
+# Chat with the bot
+print("Chatbot: Hi! How can I help you today? (Type 'exit' to end the chat)")
+while True:
+    user_input = input("You: ")
+    if user_input.lower() == 'exit':
+        print("Chatbot: Goodbye! Have a great day!")
+        break
+    reply = chatbot_response(user_input)
+    print(f"Chatbot: {reply}")
+
